@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4ecdd">
+<title>背包拼图求解器 · 6×6</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23dd7038'/%3E%3Cg fill='%23fff'%3E%3Crect x='7' y='7' width='7' height='7' rx='2'/%3E%3Crect x='18' y='7' width='7' height='7' rx='2'/%3E%3Crect x='7' y='18' width='7' height='7' rx='2'/%3E%3Crect x='18' y='18' width='7' height='7' rx='2' opacity='.55'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap head-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><g fill="currentColor">
+          <rect x="3" y="3" width="7.4" height="7.4" rx="2.2"/>
+          <rect x="13.6" y="3" width="7.4" height="7.4" rx="2.2"/>
+          <rect x="3" y="13.6" width="7.4" height="7.4" rx="2.2"/>
+          <rect x="13.6" y="13.6" width="7.4" height="7.4" rx="2.2" opacity=".5"/>
+        </g></svg>
+      </span>
+      <div class="brand-text">
+        <strong>背包拼图求解器</strong>
+        <span>6×6 棋盘 · 固定朝向 · 自动摆放</span>
+      </div>
+    </div>
+    <nav class="head-actions">
+      <button class="btn btn-ghost" id="btnDemo" type="button">载入示例</button>
+      <button class="btn btn-ghost" id="btnReset" type="button">重置</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap layout">
+
+  <!-- 左：拼图库存 -->
+  <section class="card inv-card">
+    <div class="card-head">
+      <h2>拼图库存</h2>
+      <span class="muted" id="invSummary">0 块 · 0 / 36 格</span>
+    </div>
+    <div class="piece-list" id="pieceList"></div>
+    <div class="inv-foot">
+      <button class="add-piece" id="btnAddPiece" type="button">＋ 自定义拼图</button>
+      <button class="link-btn" id="btnRestore" type="button">清除自定义</button>
+    </div>
+    <div class="inv-tips">
+      <p>上面是全部 19 种四格形状，用 − / ＋ 调成游戏里的实际数量，点「开始求解」自动摆放。</p>
+      <p>最多 9 块（总数，不是每种各 9 块），36 格。内置 19 种固定编号、只能调数量；要别的形状点「＋ 自定义拼图」。</p>
+    </div>
+  </section>
+
+  <!-- 右：棋盘与结果 -->
+  <section class="card stage-card">
+    <div class="card-head">
+      <h2>背包 6 × 6</h2>
+      <span class="pill" id="boardPill">待求解</span>
+    </div>
+
+    <div class="board-shell">
+      <svg class="board" id="board" viewBox="0 0 476 476" role="img" aria-label="6×6 背包棋盘"></svg>
+    </div>
+    <div class="board-hint" id="boardHint">录入拼图数量后，点「开始求解」自动摆放</div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-k">已占用</span>
+        <span class="stat-v"><b id="stCovered">0</b><i>/ 36</i></span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">拼图块数</span>
+        <span class="stat-v"><b id="stPieces">0</b><i>块</i></span>
+      </div>
+      <div class="stat">
+        <span class="stat-k">剩余空位</span>
+        <span class="stat-v"><b id="stEmpty">36</b><i>格</i></span>
+      </div>
+    </div>
+
+    <div class="warn" id="warn" hidden></div>
+
+    <div class="stage-actions">
+      <button class="btn btn-primary" id="btnSolve" type="button">
+        <span class="btn-txt">开始求解</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+      <button class="btn btn-soft" id="btnClear" type="button">清空方案</button>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-idle">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h10M4 17h13"/>
+        </svg>
+        <p>求解结果会显示在这里：占用格数、空位连通情况，以及还能补哪一块。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="mobile-bar">
+  <span class="mb-info"><b id="mbPieces">0</b>/9 块 · <b id="mbCells">0</b>/36 格</span>
+  <button class="btn btn-primary" id="btnSolveMobile" type="button">开始求解</button>
+</div>
+
+<footer class="wrap foot">
+  <span>纯前端 · 数据只存在本机 · 形状可自定义</span>
+  <span>v0.1</span>
+</footer>
+
+<!-- 形状编辑器 -->
+<dialog id="editor" class="editor">
+  <form method="dialog" class="editor-body">
+    <div class="editor-head">
+      <h3 id="editorTitle">编辑拼图</h3>
+      <button class="icon-btn" value="cancel" aria-label="关闭" type="submit">✕</button>
+    </div>
+
+    <label class="field">
+      <span>名称</span>
+      <input id="editorName" maxlength="8" autocomplete="off" autofocus>
+    </label>
+
+    <div class="field">
+      <span>颜色</span>
+      <div class="colors" id="editorColors"></div>
+    </div>
+
+    <div class="field">
+      <span>形状 <i class="muted" id="editorArea">4 格</i></span>
+      <div class="shape-grid" id="editorGrid"></div>
+    </div>
+
+    <div class="presets" id="editorPresets"></div>
+
+    <div class="editor-actions">
+      <button class="link-btn danger" id="editorDelete" type="button" hidden>删除此拼图</button>
+      <span class="spacer"></span>
+      <button class="btn btn-soft" value="cancel" type="submit">取消</button>
+      <button class="btn btn-primary" id="editorSave" type="button">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="assets/pieces.js"></script>
+<script src="assets/solver.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
