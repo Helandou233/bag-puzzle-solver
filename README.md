@@ -2,6 +2,8 @@
 
 《疯狂水世界》6×6 行李箱背包的拼图摆放求解器。纯前端、无需构建，双击 `index.html` 就能用。
 
+**在线使用：<https://helandou233.github.io/bag-puzzle-solver/>**（手机浏览器直接打开也可以）
+
 ![界面预览](docs/screenshot.png)
 
 ## 功能
@@ -17,7 +19,8 @@
 
 ## 使用
 
-直接双击打开 `index.html`（`file://` 可用，无需服务器）。
+- 在线：<https://helandou233.github.io/bag-puzzle-solver/>
+- 本地：双击打开 `index.html`（`file://` 可用，无需服务器；记得连同 `assets/` 目录一起）
 
 操作流程：按游戏里的实际库存调数量 → 点「开始求解」→ 看右侧棋盘与结果；没铺满时看补位建议，有拼图没放下时点红色提示里的「减掉这 N 块再摆」。
 
